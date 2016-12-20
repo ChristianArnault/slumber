@@ -83,7 +83,7 @@ class Resource(ResourceAttributesMixin, object):
 
         return self._get_resource(**kwargs)
 
-    def _request(self, method, data=None, files=None, params=None):
+    def _request(self, method, data=None, files=None, extra_headers=None, params=None):
         serializer = self._store["serializer"]
         url = self.url()
 
@@ -93,6 +93,11 @@ class Resource(ResourceAttributesMixin, object):
             headers["content-type"] = serializer.get_content_type()
             if data is not None:
                 data = serializer.dumps(data)
+
+        if extra_headers is not None:
+            for key in extra_headers:
+                value = extra_headers[key]
+                headers[key] = value
 
         resp = self._store["session"].request(method, url, data=data, params=params, files=files, headers=headers)
 
@@ -151,32 +156,32 @@ class Resource(ResourceAttributesMixin, object):
         return url
 
     # TODO: refactor these methods - lots of commonality
-    def get(self, **kwargs):
-        resp = self._request("GET", params=kwargs)
+    def get(self, headers=None, **kwargs):
+        resp = self._request("GET", extra_headers=headers, params=kwargs)
         return self._process_response(resp)
 
-    def options(self, **kwargs):
-        resp = self._request("OPTIONS", params=kwargs)
+    def options(self, headers=None, **kwargs):
+        resp = self._request("OPTIONS", extra_headers=headers, params=kwargs)
         return self._process_response(resp)
 
-    def head(self, **kwargs):
-        resp = self._request("HEAD", params=kwargs)
+    def head(self, headers=None, **kwargs):
+        resp = self._request("HEAD", extra_headers=headers, params=kwargs)
         return self._process_response(resp)
 
-    def post(self, data=None, files=None, **kwargs):
-        resp = self._request("POST", data=data, files=files, params=kwargs)
+    def post(self, data=None, files=None, headers=None, **kwargs):
+        resp = self._request("POST", data=data, files=files, extra_headers=headers, params=kwargs)
         return self._process_response(resp)
 
-    def patch(self, data=None, files=None, **kwargs):
-        resp = self._request("PATCH", data=data, files=files, params=kwargs)
+    def patch(self, data=None, files=None, headers=None, **kwargs):
+        resp = self._request("PATCH", data=data, files=files, extra_headers=headers, params=kwargs)
         return self._process_response(resp)
 
-    def put(self, data=None, files=None, **kwargs):
-        resp = self._request("PUT", data=data, files=files, params=kwargs)
+    def put(self, data=None, files=None, headers=None, **kwargs):
+        resp = self._request("PUT", data=data, files=files, extra_headers=headers, params=kwargs)
         return self._process_response(resp)
 
-    def delete(self, **kwargs):
-        resp = self._request("DELETE", params=kwargs)
+    def delete(self, headers=None, **kwargs):
+        resp = self._request("DELETE", extra_headers=headers, params=kwargs)
         if 200 <= resp.status_code <= 299:
             if resp.status_code == 204:
                 return True
